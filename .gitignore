@@ -2,6 +2,7 @@
 node_modules
 impact-analyzer/node_modules
 impact-analyzer/flash-tests
+impact-analyzer/verify_*.json
 .pnp
 .pnp.js
 
