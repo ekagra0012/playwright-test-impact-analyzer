@@ -1,0 +1,17 @@
+{
+  "commit": "6d8159d",
+  "repo": "/Users/ekagra/Desktop/test-impact-from-git-commits/impact-analyzer/flash-tests",
+  "durationMs": 27,
+  "impacted_tests": [
+    {
+      "testName": "Sort sessions by title",
+      "filePath": "tests/sessions.spec.ts",
+      "impactType": "REMOVED"
+    },
+    {
+      "testName": "Sessions Tests",
+      "filePath": "tests/sessions.spec.ts",
+      "impactType": "MODIFIED"
+    }
+  ]
+}

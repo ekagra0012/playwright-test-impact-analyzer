@@ -10,8 +10,8 @@ export class AnalyzerService {
         private repoPath: string
     ) { }
 
-    async analyze(commitSha: string): Promise<ImpactedTest[]> {
-        console.log(`Analyzing commit ${commitSha}...`);
+    async analyze(commitSha: string, silent: boolean = false): Promise<ImpactedTest[]> {
+        if (!silent) console.log(`Analyzing commit ${commitSha}...`);
 
         // 1. Get Diff
         const diffs = await this.gitService.getDiff(commitSha);
@@ -37,6 +37,9 @@ export class AnalyzerService {
                 continue;
             }
 
+            // Also check for removed tests in modified files
+            this.detectRemovedTests(fileDiff, impactedTests);
+
             // Ensure file is loaded in AST
             this.astService.addFile(absolutePath);
 
@@ -45,7 +48,7 @@ export class AnalyzerService {
                 this.detectDirectImpact(fileDiff, absolutePath, impactedTests);
             } else if (fileDiff.filePath.endsWith('.ts')) {
                 // Indirect Impact
-                this.detectIndirectImpact(fileDiff, absolutePath, impactedTests);
+                this.detectIndirectImpact(fileDiff, absolutePath, impactedTests, silent);
             }
         }
 
@@ -138,11 +141,13 @@ export class AnalyzerService {
         }
     }
 
-    private detectIndirectImpact(fileDiff: FileDiff, absolutePath: string, results: ImpactedTest[]) {
+    private detectIndirectImpact(fileDiff: FileDiff, absolutePath: string, results: ImpactedTest[], silent: boolean = false) {
+        if (!silent) console.log(`Checking indirect impact for ${fileDiff.filePath}...`);
         for (const line of fileDiff.changedLines) {
             if (line.isDeleted) continue; // Skip deleted lines for reference tracing for now
 
             const impacts = this.astService.getImpactedTestsFromSymbolAtLine(absolutePath, line.lineNumber);
+            if (!silent) console.log(`  Line ${line.lineNumber}: Found ${impacts.length} impacts`);
 
             for (const impact of impacts) {
                 results.push({
@@ -163,10 +168,13 @@ export class AnalyzerService {
         for (const line of deletedLines) {
             // Regex to match test('name', ...)
             // This is brittle but requested in plan/prompt
-            const match = line.content.match(/test\s*\(\s*['"`](.*)['"`]/);
+            // Regex to match test('name', ...), test.skip(...), test.describe(...)
+            // Matches: test( | test.only( | test.describe(
+            // Quotes: ' or " or `
+            const match = line.content.match(/(?:test(?:\.\w+)*)\s*\(\s*(['"`])(.*?)\1/);
             if (match) {
                 results.push({
-                    testName: match[1],
+                    testName: match[2], // Capture group 2 is the content inside quotes
                     filePath: fileDiff.filePath,
                     impactType: 'REMOVED'
                 });

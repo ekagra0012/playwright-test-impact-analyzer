@@ -146,38 +146,21 @@ export class GitService {
                     }
                 } else if (char === '-') {
                     // Removed line
+                    // console.log('Parsed match DELETED:', line);
                     if (currentFile.changeType === 'DEL') {
                         // For deleted files, all content is -, and we want to capture it to find removed tests
                         currentFile.changedLines.push({
                             lineNumber: currentHunk.currentOld,
-                            content: line.substring(1)
+                            content: line.substring(1),
+                            isDeleted: true
                         });
                     } else {
                         // For MOD files, - lines are removed content. 
-                        // We might need to track them for "Removed Test" logic even in MOD files.
-                        // Let's add them to changedLines but maybe we need a property to distinguish ADD/DEL line?
-                        // Our Type ChangedLine implies 'new line number'. 
-                        // Let's stick to the request: "Removed Tests" logic uses parsed deleted content.
-                        // The prompt says "Commit 6d8159d: This commit removes a test".
-                        // So yes, we need removed lines.
-                        // I'll update the interface implicitly here (and need to update types.ts).
-                        // For now, I will modify `changedLines` to have an `isDeleted` flag?
-                        // Or I realized typescript types are separate files. I should verify types.ts compatibility.
-                        // `types.ts` has `lineNumber` and `content`.
-                        // Ideally, I should update types.ts to have `deletedLines`.
-                        // I will stick to adding all to `changedLines` but maybe use `lineNumber: -1` for deleted? 
-                        // No, generic parser should just return what's there.
-
-                        // Current Decision: Only add ADDED/MODIFIED lines to `changedLines` because those match the AST of the checking-out commit.
-                        // For 'DEL' type files, we add lines to `changedLines` so we can parse them.
-                        // For 'MOD' files, if a test is removed, we need the - lines to see "test(...)"
-                        // So we DO need to capture - lines.
-                        // I'll add `type: 'ADD' | 'DEL'` to changedLine ?
                         currentFile.changedLines.push({
                             lineNumber: -1, // Indicate it's a deleted line, not present in the new file
                             content: line.substring(1),
                             isDeleted: true // Add a flag for clarity
-                        } as ChangedLine); // Cast to ChangedLine, assuming `isDeleted` will be added to type
+                        } as ChangedLine);
                     }
                     currentHunk.currentOld++;
                 } else if (char === ' ') {

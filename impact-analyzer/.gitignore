@@ -1,0 +1,5 @@
+node_modules
+dist
+flash-tests
+.DS_Store
+.env

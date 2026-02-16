@@ -7,6 +7,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import chalk from 'chalk';
 
+import Table from 'cli-table3';
+
 const program = new Command();
 
 program
@@ -33,14 +35,14 @@ program
             // ts-morph needs a tsconfig to understand project structure (aliases etc)
             const tsConfigPath = path.join(repoPath, 'tsconfig.json');
             if (!fs.existsSync(tsConfigPath)) {
-                console.warn(chalk.yellow('Warning: tsconfig.json not found in repo root. AST analysis might be limited.'));
+                // console.warn(chalk.yellow('Warning: tsconfig.json not found in repo root. AST analysis might be limited.'));
             }
 
             const astService = new AstService(tsConfigPath);
             const analyzer = new AnalyzerService(gitService, astService, repoPath);
 
             const startTime = Date.now();
-            const results = await analyzer.analyze(commitSha);
+            const results = await analyzer.analyze(commitSha, !!options.json);
             const duration = Date.now() - startTime;
 
             if (options.json) {
@@ -51,38 +53,49 @@ program
                     impacted_tests: results
                 }, null, 2));
             } else {
-                console.log(chalk.bold(`\nAnalyze Impact for Commit: ${chalk.cyan(commitSha)}`));
-                console.log(`Repository: ${repoPath}`);
-                console.log(`Time: ${duration}ms`);
-                console.log(chalk.bold('\nImpacted Tests:'));
+                console.log(chalk.bold(`\nIMPACT ANALYSIS REPORT`));
+                console.log(`Commit: ${chalk.cyan(commitSha)}\n`);
 
-                if (results.length === 0) {
-                    console.log(chalk.green('No impacted tests found.'));
-                } else {
-                    const byType = {
-                        ADDED: results.filter(r => r.impactType === 'ADDED'),
-                        MODIFIED: results.filter(r => r.impactType === 'MODIFIED'),
-                        REMOVED: results.filter(r => r.impactType === 'REMOVED'),
-                        IMPACTED_BY_DEPENDENCY: results.filter(r => r.impactType === 'IMPACTED_BY_DEPENDENCY')
-                    };
+                const table = new Table({
+                    head: [chalk.white('Status'), chalk.white('Test Name'), chalk.white('File')],
+                    colWidths: [20, 60, 50],
+                    wordWrap: true
+                });
 
-                    if (byType.ADDED.length > 0) {
-                        console.log(chalk.green(`\n[ADDED] (${byType.ADDED.length})`));
-                        byType.ADDED.forEach(t => console.log(`  + ${t.testName} (${chalk.gray(t.filePath)})`));
+                results.forEach(result => {
+                    let status = '';
+                    let colorFn = (s: string) => s;
+
+                    switch (result.impactType) {
+                        case 'ADDED':
+                            status = 'ADDED';
+                            colorFn = chalk.green;
+                            break;
+                        case 'MODIFIED':
+                            status = 'MODIFIED';
+                            colorFn = chalk.yellow;
+                            break;
+                        case 'REMOVED':
+                            status = 'REMOVED';
+                            colorFn = chalk.red;
+                            break;
+                        case 'IMPACTED_BY_DEPENDENCY':
+                            status = 'INDIRECT IMPACT';
+                            colorFn = chalk.magenta;
+                            break;
                     }
-                    if (byType.MODIFIED.length > 0) {
-                        console.log(chalk.yellow(`\n[MODIFIED] (${byType.MODIFIED.length})`));
-                        byType.MODIFIED.forEach(t => console.log(`  ~ ${t.testName} (${chalk.gray(t.filePath)})`));
-                    }
-                    if (byType.REMOVED.length > 0) {
-                        console.log(chalk.red(`\n[REMOVED] (${byType.REMOVED.length})`));
-                        byType.REMOVED.forEach(t => console.log(`  - ${t.testName} (${chalk.gray(t.filePath)})`));
-                    }
-                    if (byType.IMPACTED_BY_DEPENDENCY.length > 0) {
-                        console.log(chalk.magenta(`\n[INDIRECT IMPACT] (${byType.IMPACTED_BY_DEPENDENCY.length})`));
-                        byType.IMPACTED_BY_DEPENDENCY.forEach(t => console.log(`  * ${t.testName} (${chalk.gray(t.filePath)}) via ${chalk.italic(path.relative(repoPath, t.relatedFile || ''))}`));
-                    }
-                }
+
+                    const filePathDisplay = result.filePath + (result.relatedFile ? `\n(via ${path.relative(repoPath, result.relatedFile)})` : '');
+
+                    table.push([
+                        colorFn(status),
+                        colorFn(result.testName),
+                        chalk.gray(filePathDisplay)
+                    ]);
+                });
+
+                console.log(table.toString());
+                console.log(chalk.bold(`\nTotal Impacted: ${results.length}`));
             }
         } catch (error: any) {
             console.error(chalk.red('Error during analysis:'), error.message);

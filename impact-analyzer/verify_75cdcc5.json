@@ -1,0 +1,17 @@
+{
+  "commit": "75cdcc5",
+  "repo": "/Users/ekagra/Desktop/test-impact-from-git-commits/impact-analyzer/flash-tests",
+  "durationMs": 72,
+  "impacted_tests": [
+    {
+      "testName": "Tool Execution Tests",
+      "filePath": "tests/tool-execution/session.spec.ts",
+      "impactType": "MODIFIED"
+    },
+    {
+      "testName": "safeBash tool execution to get commit SHA",
+      "filePath": "tests/tool-execution/session.spec.ts",
+      "impactType": "ADDED"
+    }
+  ]
+}
