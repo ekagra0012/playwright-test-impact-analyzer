@@ -35,7 +35,7 @@ node dist/index.js --repo <path_to_repo> --commit <commit_sha> [options]
 Generates a human-readable table listing all impacted tests and their status (Added, Modified, or Indirect Impact).
 
 ```bash
-node dist/index.js --repo <repo_path> --commit <commit_sha>
+node dist/index.js --repo ./flash-tests --commit 75cdcc5
 ```
 
 **Example Output:**
@@ -58,7 +58,7 @@ Total Impacted: 3
 Generates a structured JSON output, ideal for piping into other tools or CI pipelines. Use the `--json` flag.
 
 ```bash
-node dist/index.js --repo <repo_path> --commit <commit_sha> --json
+node dist/index.js --repo ./flash-tests --commit 75cdcc5 --json
 ```
 
 **Example Output:**
