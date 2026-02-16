@@ -21,13 +21,17 @@ The tool is designed to work with the [flash-tests](https://github.com/empirical
 
 **Command Syntax:**
 ```bash
-npx ts-node src/index.ts --commit <SHA> --repo <PATH_TO_FLASH_TESTS>
+node dist/index.js --commit <SHA> --repo <PATH_TO_FLASH_TESTS>
 ```
 
 **Example:**
 ```bash
 # Assuming you have flash-tests cloned in a sibling directory
-npx ts-node src/index.ts --commit 75cdcc5 --repo ../flash-tests
+# Build the project first
+npm run build
+
+# Run the analyzer
+node dist/index.js --commit 75cdcc5 --repo ../flash-tests
 ```
 
 ### 3. Output Format
@@ -52,7 +56,7 @@ Total Impacted: 3
 You can also get the raw JSON output by passing the `--json` flag:
 
 ```bash
-npx ts-node src/index.ts --commit <SHA> --repo <PATH> --json
+node dist/index.js --commit <SHA> --repo <PATH> --json
 ```
 
 ## 🧪 Testing
