@@ -75,19 +75,7 @@ node dist/index.js --repo ./flash-tests --commit 75cdcc5 --json
 }
 ```
 
-## Verification
 
-To verify the tool against a set of known test scenarios (added tests, modified helpers, removed tests, etc.):
-
-1. Initialize the `flash-tests` submodule:
-   ```bash
-   git submodule update --init --recursive
-   ```
-
-2. Run the verification script:
-   ```bash
-   ./verify_all.sh
-   ```
 
 ## Running Tests
 
