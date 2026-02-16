@@ -32,18 +32,27 @@ npx ts-node src/index.ts --commit 75cdcc5 --repo ../flash-tests
 
 ### 3. Output Format
 
-The tool provides a JSON-structured output listing impacted tests:
+The tool provides a rich, color-coded CLI table output for easy reading:
 
-```json
-{
-  "impacted_tests": [
-    {
-      "test_name": "safeBash tool execution",
-      "file": "tests/tool-execution/session.spec.ts",
-      "change_type": "added"
-    }
-  ]
-}
+```text
+IMPACT ANALYSIS REPORT
+Commit: 75cdcc5
+
++------------------+------------------------------+--------------------------+
+| Status           | Test Name                    | File                     |
++------------------+------------------------------+--------------------------+
+| ADDED            | safeBash tool execution      | tests/tool-execution/... |
+| MODIFIED         | Login flow                   | tests/auth/login.spec.ts |
+| INDIRECT IMPACT  | User Profile Update          | tests/profile.spec.ts    |
++------------------+------------------------------+--------------------------+
+
+Total Impacted: 3
+```
+
+You can also get the raw JSON output by passing the `--json` flag:
+
+```bash
+npx ts-node src/index.ts --commit <SHA> --repo <PATH> --json
 ```
 
 ## 🧪 Testing
