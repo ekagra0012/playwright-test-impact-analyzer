@@ -1,61 +1,44 @@
-# Playwright Test Impact Analyzer 🚀
+# Playwright Test Impact Analyzer
 
-A sophisticated CLI tool designed to optimize CI/CD pipelines by identifying the precise subset of Playwright tests impacted by git commits. This tool leverages **Static Analysis (AST)** and **Git Diffs** to detect both direct and indirect dependencies, ensuring zero wasted compute time.
+A CLI tool designed to optimize CI/CD pipelines by identifying the precise subset of Playwright tests impacted by git commits. This tool uses static analysis and git diffs to detect both direct and indirect dependencies.
 
----
+## Installation
 
-## 🏗️ How It Works
+1. Clone the repository and navigate to the analyzer directory:
+   ```bash
+   git clone https://github.com/ekagra0012/playwright-test-impact-analyzer.git
+   cd playwright-test-impact-analyzer/impact-analyzer
+   ```
 
-The analyzer operates in three stages to guarantee accuracy:
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-1.  **Git Analysis**: Parses `git diff` to identify every changed file and line in a commit.
-2.  **AST Parsing**: Builds an Abstract Syntax Tree using `ts-morph` to understand the code structure (tests, describe blocks, helper functions).
-3.  **Dependency Tracing**: Recursively traces changes in helper files (e.g., Page Objects, utilities) to find every test that relies on the modified code.
+3. Build the project:
+   ```bash
+   npm run build
+   ```
 
----
+## Usage
 
-## ⚡️ Quick Start
+The tool analyzes the impact of a specific commit within a git repository.
 
-### 1. Installation
-
-Clone the repository and install dependencies:
-
+**Syntax:**
 ```bash
-git clone https://github.com/ekagra0012/playwright-test-impact-analyzer.git
-cd playwright-test-impact-analyzer/impact-analyzer
-
-# Install dependencies
-npm install
-
-# Build the project (Required)
-npm run build
+node dist/index.js --repo <path_to_repo> --commit <commit_sha> [options]
 ```
 
-### 2. Basic Usage
+### CLI Command Examples
 
-Run the analyzer against any local Playwright repository. You need to provide the **Path to the Repo** and the **Commit SHA**.
-
-```bash
-node dist/index.js --repo <path_to_repo> --commit <commit_sha>
-```
-
-> **Note:** The repository at `<path_to_repo>` must be a valid git repository with Playwright tests.
-
----
-
-## 🛠️ CLI Command Examples
-
-Here are the common scenarios you will use:
-
-### Scenario A: Human-Readable Report (Default)
-Best for local debugging or verifying what tests *would* run.
+#### 1. Standard Output (Visual Report)
+Generates a human-readable table listing all impacted tests and their status (Added, Modified, or Indirect Impact).
 
 ```bash
-# Example running against a sibling directory 'flash-tests'
-node dist/index.js --repo ../flash-tests --commit 75cdcc5
+node dist/index.js --repo <repo_path> --commit <commit_sha>
 ```
 
-**Output:**
+**Example Output:**
 ```text
 IMPACT ANALYSIS REPORT
 Commit: 75cdcc5
@@ -71,14 +54,14 @@ Commit: 75cdcc5
 Total Impacted: 3
 ```
 
-### Scenario B: CI/CD Integration (JSON Output)
-Use the `--json` flag to pipe the output into your CI runner (e.g., GitHub Actions, Jenkins) to dynamically filter tests.
+#### 2. JSON Output (CI/CD Integration)
+Generates a structured JSON output, ideal for piping into other tools or CI pipelines. Use the `--json` flag.
 
 ```bash
-node dist/index.js --repo ../flash-tests --commit 75cdcc5 --json
+node dist/index.js --repo <repo_path> --commit <commit_sha> --json
 ```
 
-**Output:**
+**Example Output:**
 ```json
 {
   "commit": "75cdcc5",
@@ -92,35 +75,23 @@ node dist/index.js --repo ../flash-tests --commit 75cdcc5 --json
 }
 ```
 
----
+## Verification
 
-## ✅ Verification & Robustness
+To verify the tool against a set of known test scenarios (added tests, modified helpers, removed tests, etc.):
 
-The tool includes a verification script that tests against **real commits** from the `flash-tests` repository to prove correctness across different scenarios.
+1. Initialize the `flash-tests` submodule:
+   ```bash
+   git submodule update --init --recursive
+   ```
 
-To run the verification suite:
+2. Run the verification script:
+   ```bash
+   ./verify_all.sh
+   ```
 
-```bash
-# 1. Ensure you have the 'flash-tests' submodule initialized
-cd impact-analyzer
-git submodule update --init --recursive
+## Running Tests
 
-# 2. Run the verification script
-./verify_all.sh
-```
-
-This script validates:
-- [x] **Added Tests**: Correctly identifies new test blocks.
-- [x] **Modified Tests**: Detects changes within existing tests.
-- [x] **Deleted Tests**: Finds tests removed in a commit.
-- [x] **Indirect Impact**: Traces changes in helper files (Page Objects) to the tests that import them.
-- [x] **Global Config**: Flags "ALL TESTS" if `playwright.config.ts` or `package.json` changes.
-
----
-
-## 🧪 Running Unit Tests
-
-The project itself is fully tested. To run the internal unit tests:
+To run the internal unit tests for the analyzer:
 
 ```bash
 npm test
